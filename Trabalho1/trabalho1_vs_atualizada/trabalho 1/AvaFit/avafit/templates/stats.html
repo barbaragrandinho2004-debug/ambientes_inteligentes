@@ -1,0 +1,170 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>AvaFit - Estatísticas</title>
+    <style>
+        :root {
+            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --card-bg: rgba(255, 255, 255, 0.95);
+            --text-main: #2d3436;
+            --text-sub: #636e72;
+            --accent: #764ba2;
+        }
+
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+        body {
+            font-family: 'SF Pro Display', sans-serif;
+            background: var(--primary-gradient);
+            margin: 0; padding: 0;
+            display: flex; justify-content: center; align-items: center;
+            min-height: 100vh; color: var(--text-main);
+        }
+
+        .mobile-screen {
+            width: 100%; max-width: 420px; height: 100vh;
+            background-color: #f4f7f6; position: relative;
+            display: flex; flex-direction: column;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.3);
+            overflow-y: auto;
+            padding-bottom: 90px;
+        }
+
+        @media (min-width: 421px) {
+            .mobile-screen { height: 90vh; border-radius: 30px; border: 12px solid #333; }
+        }
+
+        /* Header */
+        .header { padding: 30px 20px 20px; display: flex; align-items: center; gap: 15px; }
+        .back-link { text-decoration: none; font-size: 1.5em; color: var(--text-main); }
+        .header h1 { margin: 0; font-size: 1.5em; font-weight: 800; }
+
+        /* Cartões de Stats */
+        .stats-content { padding: 0 20px; }
+        
+        .main-card {
+            background: white; border-radius: 25px; padding: 25px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.05); margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .big-number { font-size: 3em; font-weight: 900; color: var(--accent); margin: 10px 0; }
+        .label { color: var(--text-sub); font-size: 0.9em; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; }
+
+        /* Grid de Mini-Stats */
+        .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px; }
+        .mini-card {
+            background: white; border-radius: 20px; padding: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.03);
+        }
+        .mini-card h3 { margin: 0; font-size: 0.8em; color: var(--text-sub); }
+        .mini-card p { margin: 5px 0 0; font-size: 1.2em; font-weight: 700; }
+
+        /* Simulação de Gráfico (Placeholder para o futuro) */
+        .chart-placeholder {
+            background: white; border-radius: 25px; padding: 20px;
+            height: 200px; display: flex; align-items: flex-end; justify-content: space-around;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.05);
+        }
+        .bar { width: 30px; background: var(--primary-gradient); border-radius: 8px 8px 0 0; animation: grow 1s ease-out; }
+        
+        @keyframes grow { from { height: 0; } }
+
+        /* Barra de Navegação Fundo */
+        .tab-bar {
+    display: flex; 
+    background: white; 
+    padding: 10px 0; 
+    border-top: 1px solid #eee; 
+    
+    /* Alterações para fixar no fundo */
+    position: fixed; 
+    bottom: 0; 
+    left: 0;
+    width: 100%;
+    max-width: 420px;
+    z-index: 999; /* Garante que fica sempre por cima de tudo */
+    left: 50%;
+    transform: translateX(-50%);
+    /* Ajuste para alinhar com o fundo arredondado do telemóvel */
+    border-radius: 0 0 30px 30px; 
+}
+
+.tab-item { 
+    flex: 1; 
+    text-align: center; 
+    color: var(--text-sub); 
+    text-decoration: none; 
+    display: flex; 
+    flex-direction: column; 
+    align-items: center; 
+    font-size: 0.7em; 
+    font-weight: bold; 
+    transition: all 0.2s ease;
+}
+
+.tab-item span { 
+    font-size: 1.8em; 
+    margin-bottom: 2px; 
+}
+
+.active { 
+    color: #764ba2 !important; 
+    opacity: 1 !important; 
+}
+    </style>
+</head>
+<body>
+
+    <div class="mobile-screen">
+        <div class="header">
+            <a href="{% url 'home' %}" class="back-link">❮</a>
+            <h1>Estatísticas</h1>
+        </div>
+
+        <div class="stats-content">
+            <div class="main-card">
+                <span class="label">Passos Hoje</span>
+                <div class="big-number">{{ buddy.passos_hoje }}</div>
+                <p style="color: var(--health-green); font-weight: bold;">+12% que ontem</p>
+            </div>
+
+            <div class="stats-grid">
+                <div class="mini-card">
+                    <h3>Energia</h3>
+                    <p>{{ buddy.saude }}%</p>
+                </div>
+                <div class="mini-card">
+                    <h3>Meta</h3>
+                    <p>5000</p>
+                </div>
+            </div>
+
+            <span class="label" style="margin-left: 5px;">Atividade Semanal</span>
+            <div class="chart-placeholder" style="margin-top: 10px;">
+                <div class="bar" style="height: 40%;"></div>
+                <div class="bar" style="height: 60%;"></div>
+                <div class="bar" style="height: 30%;"></div>
+                <div class="bar" style="height: 80%;"></div>
+                <div class="bar" style="height: 50%;"></div>
+                <div class="bar" style="height: {{ buddy.saude }}%;"></div> </div>
+        </div>
+
+        <nav class="tab-bar">
+            <a href="{% url 'home' %}" class="tab-item">
+                <span>🏠</span> Home
+            </a>
+            <a href="{% url 'stats' %}" class="tab-item active">
+                <span>📊</span> Stats
+            </a>
+            <a href="{% url 'config' %}" class="tab-item" style="opacity: 0.4;">
+                <span>⚙️</span> Config
+            </a>
+        </nav>
+    </div>
+
+</body>
+</html>
