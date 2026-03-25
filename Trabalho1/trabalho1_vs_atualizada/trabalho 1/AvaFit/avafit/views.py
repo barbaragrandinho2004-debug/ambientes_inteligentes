@@ -1,16 +1,27 @@
+from django.contrib.auth import logout
 from django.shortcuts import render, redirect
+from django.contrib.auth.decorators import login_required # ADICIONAR ESTA LINHA
 from .models import AvaFit
 from .google_fit import ler_passos_hoje, verificar_sono_agora, ler_batimento_medio
 import os
-import random # Vamos usar isto para frases variadas
+import random 
 from Adafruit_IO import Client
 
+
+# FUNÇÃO DE LOGIN ---
+def login_view(request):
+    if request.user.is_authenticated:
+        return redirect('home') # Se já tem login, vai direto para a home
+    return render(request, 'login.html')
+
+
+@login_required(login_url='/login/')
 def home(request):
     buddy, created = AvaFit.objects.get_or_create(id=1)
     return render(request, 'home.html', {'buddy': buddy})
 
-import random
 
+@login_required(login_url='/login/')
 def atualizar_dados(request):
     # 1. Obter dados (Total do dia e última hora)
     passos_totais, passos_ultima_hora = ler_passos_hoje()
@@ -24,11 +35,6 @@ def atualizar_dados(request):
     buddy.saude=0
 
     
-
-    
-
-    
-
     # --- MOTOR DE REGRAS INTELIGENTE ---
 
     if esta_a_dormir:
@@ -104,26 +110,38 @@ def atualizar_dados(request):
             print(f"ERRO no feed '{nome_feed}': {e}")
     print(f"DEBUG: Total Dia: {passos_totais} | Última Hora: {passos_ultima_hora} | Saúde Final: {buddy.saude}%, Sono: {esta_a_dormir}, Batimento Médio: {batimento_medio}")
     
-    return render(request, 'home.html', {'buddy': buddy, 'contexto_sedentario': contexto_sedentario, 'esta_a_dormir': esta_a_dormir})
+    return render(request, 'home.html', {
+        'buddy': buddy, 
+        'contexto_sedentario': contexto_sedentario, 
+        'esta_a_dormir': esta_a_dormir,
+        'passos_ultima_hora': passos_ultima_hora, 
+        'batimento_medio': int(batimento_medio) if batimento_medio else 0,
+        'acabou_de_sincronizar': True
+    })
 
+@login_required(login_url='/login/')
 def ver_stats(request):
     buddy = AvaFit.objects.get(id=1)
     return render(request, 'stats.html', {'buddy': buddy})
 
+@login_required(login_url='/login/')
 def ver_config(request):
     buddy = AvaFit.objects.get(id=1)
     # Verifica se o utilizador está ligado (se o ficheiro token existe)
     esta_ligado = os.path.exists('token.json')
     return render(request, 'config.html', {'buddy': buddy, 'esta_ligado': esta_ligado})
 
+@login_required(login_url='/login/')
 def logout_google(request):
     if os.path.exists('token.json'):
         os.remove('token.json')
-    return redirect('config')
+
+    logout(request)  # Desloga o utilizador do Django
+    return redirect('login') # Redireciona para a página de login após logout
 
 def calcular_estado_buddy(buddy, dados_samsung):
     # 1. Verificar se está a dormir (usando o ficheiro 'sleep')
-    if esta_a_dormir(dados_samsung['sleep']):
+    if verificar_sono_agora():
         buddy.estado = "Zzz... A descansar."
         return buddy ##############################3
 

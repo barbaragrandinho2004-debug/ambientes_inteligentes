@@ -18,7 +18,7 @@ from django.contrib import admin
 from django.urls import path, include
 from django.conf.urls.static import static
 from django.conf import settings
-from avafit.views import home, ver_stats, ver_config, atualizar_dados
+from avafit.views import home, ver_stats, ver_config, atualizar_dados, login_view, logout_google
 
 
 
@@ -27,6 +27,7 @@ from avafit.views import home, ver_stats, ver_config, atualizar_dados
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('accounts/', include('allauth.urls')),
+    path('login/', login_view, name='login'), 
     path('', home, name='home'),
     path('atualizar/', atualizar_dados, name='atualizar'),
     path('stats/', ver_stats, name='stats'),

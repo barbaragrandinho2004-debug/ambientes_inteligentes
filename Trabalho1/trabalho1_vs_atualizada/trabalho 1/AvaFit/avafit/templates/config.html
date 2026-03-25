@@ -117,17 +117,22 @@
 
         <div class="config-panel">
             
-            <div class="config-card">
+           <div class="config-card">
                 <h3>Conta Google Fit</h3>
                 {% if esta_ligado %}
                     <p style="color: #00b894; font-weight: bold;">● Ligado com sucesso</p>
                     <a href="{% url 'logout_google' %}" class="btn-action">
-                        <span>👋</span> Sair da Conta / Trocar
+                        <span>❌</span> Sair da Conta / Trocar
                     </a>
                 {% else %}
                     <p style="color: #d63031; font-weight: bold;">○ Desligado</p>
-                    <a href="{% url 'atualizar' %}" class="btn-action" style="background: #667eea;">
+                    
+                    <a href="{% url 'atualizar' %}" class="btn-action" style="background: #667eea; margin-bottom: 15px;">
                         <span>🔗</span> Ligar Google Fit
+                    </a>
+                    
+                    <a href="{% url 'logout_google' %}" class="btn-action" style="background: transparent; color: #d63031; border: 2px solid #d63031;">
+                        <span>❌</span> Sair da Conta / Trocar
                     </a>
                 {% endif %}
             </div>

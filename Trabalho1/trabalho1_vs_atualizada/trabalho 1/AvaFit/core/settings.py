@@ -37,7 +37,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'avafit'
+    'avafit',
     'django.contrib.sites',
     'allauth',
     'allauth.account',
@@ -53,6 +53,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'allauth.account.middleware.AccountMiddleware',
 ]
 
 ROOT_URLCONF = 'core.urls'
@@ -132,26 +133,33 @@ import os
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
+SITE_ID = 1
+
 #Configurações para autenticação social com Google
+
+# --- CONFIGURAÇÕES DO ALLAUTH E GOOGLE ---
 AUTHENTICATION_BACKENDS = [
     'django.contrib.auth.backends.ModelBackend',
     'allauth.account.auth_backends.AuthenticationBackend',
 ]
 
-SITE_ID = 1
-
-LOGIN_REDIRECT_URL = '/'
-LOGOUT_REDIRECT_URL = '/'
-
 SOCIALACCOUNT_PROVIDERS = {
     'google': {
+        'APP': {
+            'client_id': '105796431580-04o48g61ltkms481fau1jlbc90cdcuuf.apps.googleusercontent.com', 
+            'secret': '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',                         
+            'key': ''
+        },
         'SCOPE': [
             'profile',
             'email',
         ],
         'AUTH_PARAMS': {
-            'access_type': 'offline',
-        },
-        'OAUTH_PKCE_ENABLED': True,
+            'access_type': 'online',
+        }
     }
 }
+
+LOGIN_REDIRECT_URL = '/'
+LOGOUT_REDIRECT_URL = '/login/'
+SOCIALACCOUNT_LOGIN_ON_GET = True
