@@ -1,0 +1,263 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>AvaFit - Análise Diária</title>
+    <style>
+        :root {
+            /* Paleta Light Mode */
+            --bg-body: #eef2f5;
+            --bg-app: #ffffff;
+            --text-main: #2c3e50;
+            --text-sub: #7f8c8d;
+            
+            /* Cores de Destaque */
+            --accent-blue: #3498db;    /* Para Passos */
+            --accent-red: #ff7675;     /* Para BPM */
+            --accent-purple: #a29bfe;  /* Para Sono */
+            --accent-green: #2ecc71;   /* Para Saúde */
+            
+            --card-shadow: 0 8px 24px rgba(149, 157, 165, 0.15);
+        }
+
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; font-family: 'Segoe UI', Roboto, Helvetica, sans-serif; }
+
+        body {
+            background: var(--bg-body); margin: 0; padding: 0;
+            display: flex; justify-content: center; align-items: center; min-height: 100vh;
+        }
+
+        .mobile-screen {
+            width: 100%; max-width: 420px; height: 100vh;
+            background-color: var(--bg-app); position: relative;
+            display: flex; flex-direction: column; overflow-y: auto; padding-bottom: 90px;
+        }
+
+        @media (min-width: 421px) {
+            .mobile-screen { height: 90vh; border-radius: 40px; border: 12px solid #2d3436; box-shadow: 0 30px 60px rgba(0,0,0,0.2); }
+        }
+
+        /* --- Header --- */
+        .header { padding: 30px 25px 20px; display: flex; justify-content: space-between; align-items: center; }
+        .header h1 { margin: 0; font-size: 1.6em; font-weight: 800; color: var(--text-main); letter-spacing: -0.5px; }
+        .avatar { width: 45px; height: 45px; border-radius: 50%; background-color: var(--bg-body); display: flex; align-items: center; justify-content: center; font-size: 1.5em; }
+
+        .content-padding { padding: 0 25px; }
+
+        /* --- Cartão Prioridade: Sono --- */
+        .sleep-card {
+            background: linear-gradient(135deg, #6c5ce7 0%, #a29bfe 100%);
+            border-radius: 20px; padding: 25px; color: white; margin-bottom: 25px;
+            box-shadow: 0 10px 20px rgba(108, 92, 231, 0.3);
+        }
+        .sleep-card h3 { margin: 0 0 10px 0; font-size: 1.1em; font-weight: 500; opacity: 0.9; }
+        .sleep-value { font-size: 2.5em; font-weight: 800; margin: 0; }
+        .sleep-status { background: rgba(255,255,255,0.2); padding: 5px 12px; border-radius: 12px; font-size: 0.8em; font-weight: bold; display: inline-block; margin-top: 10px;}
+
+        /* --- Cartões Rápidos (Grid) --- */
+        .quick-stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 25px; }
+        .mini-card {
+            background: white; border-radius: 20px; padding: 20px; text-align: center;
+            border: 1px solid #f1f2f6; box-shadow: var(--card-shadow);
+        }
+        .mini-card span.label { color: var(--text-sub); font-size: 0.75em; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
+        .mini-card .val { font-size: 1.8em; font-weight: 800; color: var(--text-main); margin: 8px 0 0 0; }
+
+        /* --- Secção: Gráfico Dinâmico --- */
+        .chart-section {
+            background: white; border-radius: 24px; padding: 20px; margin-bottom: 25px;
+            border: 1px solid #f1f2f6; box-shadow: var(--card-shadow);
+        }
+        .chart-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+        .chart-header h3 { margin: 0; font-size: 1.2em; color: var(--text-main); font-weight: 700; }
+        
+        select#seletorMetrica {
+            background: var(--bg-body); border: none; padding: 8px 12px; border-radius: 10px;
+            font-size: 0.9em; font-weight: 600; color: var(--text-main); outline: none; cursor: pointer;
+        }
+
+        .chart-wrapper { height: 220px; width: 100%; position: relative; }
+
+        /* --- Botões Extra --- */
+        .btn-ghost {
+            display: block; width: 100%; padding: 15px; text-align: center; border-radius: 15px;
+            color: var(--text-sub); font-weight: 600; text-decoration: none; font-size: 0.9em;
+            background: #f8f9fa; border: 1px dashed #ced4da; margin-bottom: 15px;
+        }
+        .btn-primary {
+            display: block; width: 100%; padding: 16px; text-align: center; border-radius: 16px;
+            color: white; font-weight: bold; text-decoration: none; font-size: 1em;
+            background: var(--accent-blue); box-shadow: 0 4px 15px rgba(52, 152, 219, 0.4); border: none;
+        }
+
+        /* --- Tab Bar --- */
+        .tab-bar {
+            display: flex; background: rgba(255,255,255,0.95); backdrop-filter: blur(10px);
+            padding: 15px 0; border-top: 1px solid #f1f2f6; 
+            position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 420px; z-index: 10;
+        }
+        .tab-item { flex: 1; text-align: center; color: var(--text-sub); text-decoration: none; display: flex; flex-direction: column; align-items: center; font-size: 0.75em; font-weight: 600; }
+        .tab-item span.icon { font-size: 1.6em; margin-bottom: 4px; filter: grayscale(100%); opacity: 0.6;}
+        .tab-item.active { color: var(--accent-blue); }
+        .tab-item.active span.icon { filter: grayscale(0%); opacity: 1; }
+    </style>
+</head>
+<body>
+
+    <div class="mobile-screen">
+        
+        <div class="header">
+            <div>
+                <p style="margin:0; font-size: 0.8em; color: var(--text-sub); font-weight: bold; text-transform: uppercase;">{{ nome_utilizador }}</p>
+                <h1>Painel de Saúde</h1>
+            </div>
+            <div class="avatar">👩🏻‍💻</div>
+        </div>
+
+        <div class="content-padding">
+            
+            <div class="sleep-card">
+                <h3>Monitorização de Repouso</h3>
+                <p class="sleep-value">{{ horas_sono }}<span style="font-size: 0.5em;">h</span> {{ minutos_sono }}<span style="font-size: 0.5em;">m</span></p>
+                <div class="sleep-status">🌙 Última sessão detetada pelo algoritmo</div>
+            </div>
+
+            <div class="quick-stats-grid">
+                <div class="mini-card">
+                    <span class="label">Total Passos</span>
+                    <p class="val" style="color: var(--accent-blue);">{{ total_passos|default:buddy.passos_hoje }}</p>
+                </div>
+                <div class="mini-card">
+                    <span class="label">Média BPM</span>
+                    <p class="val" style="color: var(--accent-red);">{{ bpm_medio }}</p> 
+                </div>
+            </div>
+
+            <div class="chart-section">
+                <div class="chart-header">
+                    <h3>Evolução Diária</h3>
+                    <select id="seletorMetrica">
+                        <option value="batimento">❤️ BPM</option>
+                        <option value="passos">👟 Passos</option>
+                        <option value="sono">💤 Sono</option>
+                        <option value="saude">⭐ Saúde</option>
+                    </select>
+                </div>
+                
+                <div class="chart-wrapper">
+                    <canvas id="graficoDinamico"></canvas>
+                </div>
+            </div>
+
+            
+            <a href="{% url 'exportar_pdf' %}" class="btn-primary">📥 Exportar Relatório Médico</a>
+
+        </div>
+
+        <nav class="tab-bar">
+            <a href="{% url 'home' %}" class="tab-item {% if request.resolver_match.url_name == 'home' %}active{% endif %}">
+                <span>🏠</span> Home
+            </a>
+            <a href="{% url 'stats' %}" class="tab-item {% if request.resolver_match.url_name == 'stats' %}active{% endif %}">
+                <span>📊</span> Stats
+            </a>
+            <a href="{% url 'config' %}" class="tab-item {% if request.resolver_match.url_name == 'config' %}active{% endif %}">
+                <span>⚙️</span> Config
+            </a>
+        </nav>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        // Cores formatadas para o Light Mode
+        const colorBlue = '#3498db';
+        const colorRed = '#ff7675';
+        const colorPurple = '#a29bfe';
+        const colorGreen = '#2ecc71';
+
+        // Variáveis do Django
+        const labelsTempo = {{ labels|safe|default:"[]" }};
+        const dadosBatimento = {{ bpm_stats|safe|default:"[]" }};
+        const dadosPassos = {{ passos_stats|safe|default:"[]" }};
+        const dadosSono = {{ sono_stats|safe|default:"[]" }};
+        const dadosSaude = {{ saude_stats|safe|default:"[]" }};
+
+        const configMetricas = {
+            'batimento': {
+                label: 'Batimento Médio',
+                data: dadosBatimento,
+                borderColor: colorRed,
+                backgroundColor: 'rgba(255, 118, 117, 0.1)',
+                stepped: false, yMin: 40
+            },
+            'passos': {
+                label: 'Atividade por Bloco',
+                data: dadosPassos,
+                borderColor: colorBlue,
+                backgroundColor: 'rgba(52, 152, 219, 0.1)',
+                stepped: false, yMin: 0
+            },
+            'sono': {
+                label: 'Estado (1=Dormir, 0=Acordado)',
+                data: dadosSono,
+                borderColor: colorPurple,
+                backgroundColor: 'rgba(162, 155, 254, 0.1)',
+                stepped: true, yMin: 0
+            },
+            'saude': {
+                label: 'Bem-estar Estimado (%)',
+                data: dadosSaude,
+                borderColor: colorGreen,
+                backgroundColor: 'rgba(46, 204, 113, 0.1)',
+                stepped: false, yMin: 0
+            }
+        };
+
+        const ctx = document.getElementById('graficoDinamico').getContext('2d');
+        let chart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: labelsTempo,
+                datasets: [{
+                    label: configMetricas['batimento'].label,
+                    data: configMetricas['batimento'].data,
+                    borderColor: configMetricas['batimento'].borderColor,
+                    backgroundColor: configMetricas['batimento'].backgroundColor,
+                    borderWidth: 3, tension: 0.4, fill: true,
+                    stepped: configMetricas['batimento'].stepped,
+                    pointBackgroundColor: '#fff', pointBorderWidth: 2, pointRadius: 4
+                }]
+            },
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                scales: {
+                    y: { 
+                        min: configMetricas['batimento'].yMin, 
+                        grid: { color: '#f1f2f6', borderDash: [5, 5] },
+                        ticks: { color: '#7f8c8d' }
+                    },
+                    x: { 
+                        grid: { display: false },
+                        ticks: { color: '#7f8c8d' }
+                    }
+                },
+                plugins: { legend: { display: false } } 
+            }
+        });
+
+        // Evento do Dropdown
+        document.getElementById('seletorMetrica').addEventListener('change', function(e) {
+            const config = configMetricas[e.target.value];
+            chart.data.datasets[0].label = config.label;
+            chart.data.datasets[0].data = config.data;
+            chart.data.datasets[0].borderColor = config.borderColor;
+            chart.data.datasets[0].backgroundColor = config.backgroundColor;
+            chart.data.datasets[0].stepped = config.stepped;
+            chart.options.scales.y.min = config.yMin;
+            chart.update();
+        });
+    </script>
+</body>
+</html>
